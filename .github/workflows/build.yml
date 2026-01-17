@@ -1,0 +1,39 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ "main" ] # अगर आपकी ब्रांच का नाम master है, तो यहाँ master लिखें
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract ZIP
+        run: unzip root.zip
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Build Release APK
+        run: |
+          # यहाँ 'ls -d */' से हमें उस फोल्डर का नाम पता चलेगा जो zip के अंदर है
+          FOLDER=$(ls -d */ | head -n 1)
+          cd "$FOLDER"
+          flutter pub get
+          flutter build apk --release
+
+      - name: Save APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-release-apk
+          path: "**/build/app/outputs/flutter-apk/app-release.apk"
